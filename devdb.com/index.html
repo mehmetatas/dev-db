@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>DevDb</title>
+    <base href="/">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script>
+        function generateGuid() {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+            }
+
+            var guid = s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                s4() + '-' + s4() + s4() + s4();
+
+            alert(guid);
+
+            return false;
+        }
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <a href="https://github.com/mehmetatas/dev-db" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
+    <div class="navbar navbar-inverse">
+        <a class="navbar-brand" href="/">DevDb</a>
+        <ul class="nav navbar-nav">
+            <li>
+                <a> Simple Development Database</a>
+            </li>
+        </ul>
+    </div>
+    <h1>DevDb</h1>
+    When you want to focus on UI design or something else but need some persistence for demo data DevDb may help you.
+    DevDb is a simple json database for storing your json objects. It exposes a simple REST-like http(s) interface.
+    <br><br>
+    It can be accessed here:
+    <br><br>
+    <pre>https://api.dev-db.com/</pre>
+    In every request you need to send your account id (a guid value) in the request header.
+    <br><br>
+    <pre>X-DevDb-AccountId: "f951dfcb-b891-43d0-aabd-aa9ab3b1b359"</pre>
+    For now, you do not need to signup to have an account id. Just <a href="#" onclick="return generateGuid();">generate a guid</a> for yourself and start enjoying DevDb.
+    <br><br>
+    Like the other databases you have tables and items. Tables do not have a schema, they are just a collection of json objects.
+    <br><br>
+    If you receive an error (non 2XX response) you <b>may</b> find an error message can be found in the <code>X-DevDb-ErrorMessage</code> response header value.
+
+
+    <h2>Insert</h2>
+    Insert a user into <code>users</code> table.
+    Note that, you do not have to create the table <code>users</code> table in advance. It will be created with the first <code>POST</code> request.
+    <br><br>
+    <pre>POST https://api.dev-db.com/users
+{
+  "name": "mehmet",
+  "surname": "atas"
+}</pre>
+    This will insert a user to the <code>users</code> table.
+    A guid will be generated as the record <code>id</code>.
+    So do not send a property named <code>id</code> because it will be overwritten with the value generated in the server.
+    If you really want to save your own id, name it something else.
+    The generated <code>id</code> value will return with the <code>X-DevDb-Id</code> header value of the http response.
+
+
+    <h2>Update</h2>
+    Update an existing user in the <code>users</code> table.
+    <br><br>
+    <pre>PUT https://api.dev-db.com/users/6be9b788-6c13-45f3-8d88-a629551f8e35
+{
+  "name": "Mehmet",
+  "surname": "Ataş",
+  "middlename": "Ali"
+}</pre>
+    This will overwrite the existing user entity in the <code>users</code> table.
+    <code>id</code> property must be present. If the related object is not found a 404 response will be returned.
+    If <code>id</code> is also sent within body it will be ignored.
+
+
+    <h2>Partial Update</h2>
+    Update only the specified properties of an existing user in the <code>users</code> table.
+    <br><br>
+    <pre>PATCH https://api.dev-db.com/users/6be9b788-6c13-45f3-8d88-a629551f8e35
+{
+  "surname": "Ataş",
+  "middlename": "Ali"
+}</pre>
+    This will update the <code>surname</code> and add the <code>middlename</code> properties to the existing user entity in the <code>users</code> table.
+    <code>id</code> property must be present. If the related object is not found a 404 response will be returned.
+    If <code>id</code> is also sent within body it will be ignored.
+
+
+    <h2>Get by Id</h2>
+    Gets the existing user from the <code>users</code> table by its <code>id</code>.
+    <br><br>
+    <pre>GET https://api.dev-db.com/users/6be9b788-6c13-45f3-8d88-a629551f8e35</pre>
+    This will get the user with the specified id from the <code>users</code> table.
+    If the related object is not found a 404 response will be returned.
+
+
+    <h2>List all items</h2>
+    Gets all the users from the <code>users</code> table.
+    <br><br>
+    <pre>GET https://api.dev-db.com/users</pre>
+    This will get all the users in the <code>users</code> table.
+    If the table is not found a 404 response will be returned.
+
+
+    <h2>Search</h2>
+    Searches the user from the <code>users</code> table.
+    <br><br>
+    <pre>GET https://api.dev-db.com/users?filter=[encoded-filter-expression]&pageIndex=1&pageSize=10&orderby=name+</pre>
+    If the table is not found a 404 response will be returned.
+
+    <h3>Filter Experssion</h3>
+    Filter supports below operations
+    <ul>
+        <li>Equals <code>=</code></li>
+        <li>Not Equals <code>!=</code></li>
+        <li>Less Than <code>&lt;</code></li>
+        <li>Less Than or Equals <code>&lt;=</code></li>
+        <li>Greater Than <code>&gt;</code></li>
+        <li>Greater Than or Equals<code>&gt;=</code></li>
+        <li>In <code>in</code></li>
+        <li>And <code>&</code></li>
+        <li>Or <code>|</code></li>
+    </ul>
+
+    I guess you will get the idea easily with a few examples so I will not give all possible combinations.
+    <br><br>
+    <table class="table table-condensed table-striped" style="max-width: 600px">
+        <tr>
+            <th>Sql</th>
+            <th>DevDb</th>
+        </tr>
+        <tr>
+            <td>name = 'mehmet'</td>
+            <td>name = "mehmet"</td>
+        </tr>
+        <tr>
+            <td>name <> 'mehmet'</td>
+            <td>name != "mehmet"</td>
+        </tr>
+        <tr>
+            <td>name like '%mehmet%'</td>
+            <td>name = "*mehmet*"</td>
+        </tr>
+        <tr>
+            <td>age < 18</td>
+            <td>age < 18</td>
+        </tr>
+        <tr>
+            <td>name = 'mehmet' and age < 18</td>
+            <td>name = "mehmet" & age < 18</td>
+        </tr>
+        <tr>
+            <td>name = 'mehmet' and (age < 18 or age > 65)</td>
+            <td>name = "mehmet" & (age < 18 | age > 65)</td>
+        </tr>
+        <tr>
+            <td>age in (1,2,3,4)</td>
+            <td>age in [1,2,3,4]</td>
+        </tr>
+    </table>
+
+    You can use <code>\</code> as the escape character for the <code>string</code> expressions.
+    Filter expression should be encoded while creating the uri.
+
+    <h3>Order By Expression</h3>
+    <table class="table table-condensed table-striped" style="max-width: 500px">
+        <tr>
+            <th>Sql</th>
+            <th>DevDb</th>
+        </tr>
+        <tr>
+            <td>order by name asc</td>
+            <td>name+</td>
+        </tr>
+        <tr>
+            <td>order by name desc</td>
+            <td>name-</td>
+        </tr>
+        <tr>
+            <td>order by name asc, surname desc, age asc</td>
+            <td>name+,surname-,age+</td>
+        </tr>
+    </table>
+
+    Order by expression should be encoded while creating the uri.
+
+    <h3>How to build a search query string</h3>
+
+    <pre>var filter = 'name="mehmet"&age<18';
+var pageIndex = 1;
+var pageSize = 10;
+var orderby = 'name+,age-';
+
+var url = 'https://api.dev-db.com/users' +
+    '?filter=' + encodeURIComponent(filter) +
+    '&pageIndex=' + pageIndex +
+    '&pageSize=' + pageSize +
+    '&orderby=' + encodeURIComponent(orderby)
+
+$.get(url, function(page) {
+    var items = page.items; // Array
+    var pageSize = page.pageSize;
+    var currentPageIndex = page.currentPageIndex;
+    var totalItemCount = page.totalItemCount;
+    var totalPageCount = page.totalPageCount;
+});
+</pre>
+
+    <code>pageIndex</code> starts from 1.
+    Default values for <code>pageIndex</code> and <code>pageSize</code> are 1 and 1000 respectively and they cannot be negative.
+    <code>pageSize</code> cannot be greater than 1000.
+
+
+    <h2>Delete</h2>
+    Deletes an existing user in the <code>users</code> table.
+    <br><br>
+    <pre>DELETE https://api.dev-db.com/users/6be9b788-6c13-45f3-8d88-a629551f8e35</pre>
+    This will delete the existing user entity with the given id in the <code>users</code> table.
+    If the related object is not found a 404 response will be returned.
+
+
+    <h2>Delete Table</h2>
+    Delete the <code>users</code> table.
+    <br><br>
+    <pre>DELETE https://api.dev-db.com/users</pre>
+    This will delete the entire <code>users</code> table.
+
+
+    <h2>Limitations</h2>
+    As DevDb is a simple development server it has some limitations.
+    <ul>
+        <li>A table can be max 1MB</li>
+        <li>A table can have max 1000 items</li>
+        <li>An account can have max 50 tables</li>
+        <li>A request can be max 1MB</li>
+        <li>Property names should match this regex <code>^[a-zA-Z_] [a-zA-Z_0-9]*$</code></li>
+        <li>Table names should match this regex <code>^[a-z][a-z|\-|\d]*$</code></li>
+    </ul>
+
+    If you try to exceed the capacity limits, you will get an <code>403 Forbidden</code> http response.
+
+
+    <h2>Running on localhost</h2>
+    By running DevDb on your local machine you can eliminate the limitations.
+    If you can run DevDb on your local machine by downloading a <a href="dev-db.jar">single jar file</a>.
+    After downloading you start it with below command.
+    <br><br>
+    <pre>java -jar dev-db.jar --devdb.local=true --devdb.datadir=/dev-dv/data/ --server.port=8080</pre>
+
+    Now instead of <code>https://api.dev-db.com/</code> you can use <code>http://localhost:8080/</code>.
+    <br><br>
+    For the <code>devdb.datadir</code> parameter do not forget to add the trailing slash (or back-slash in Windows).
+    If <code>devdb.local</code> parameter is set to true, capacity limitations will not apply.
+
+
+    <div style="padding: 50px; text-align: center">
+        &copy; Copyright <script>document.write(new Date().getFullYear())</script> - <a href="https://mehmetatas.net" target="_blank">mehmet ataş</a>
+    </div>
+</div>
+</body>
+</html>
