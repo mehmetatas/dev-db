@@ -533,4 +533,21 @@ public class ParserTests {
             put("a3", 3);
         }})).equals(false));
     }
+
+    @Test
+    public void parseStringRange() {
+        Expression ex = parse("date <= \"2017-08-25\" & date >= \"2017-08-15\"");
+
+        assertEquals(-1, "2017-08-10".compareTo("2017-08-25"));
+        assertEquals(-5, "2017-08-10".compareTo("2017-08-15"));
+
+        assertTrue(ex instanceof AndExpression);
+
+        for (int i = 10; i < 30; i++) {
+            final int day = i;
+            assertTrue("Failed for: " + i, ex.eval(ctx.setMap(new HashMap<String, Object>() {{
+                put("date", "2017-08-" + day);
+            }})).equals(i <= 25 && i >= 15));
+        }
+    }
 }

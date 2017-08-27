@@ -38,8 +38,8 @@ public class ComparisonExpression implements Expression {
         }
 
         if (o1 instanceof Number && o2 instanceof Number) {
-            o1 = ((Number)o1).doubleValue();
-            o2 = ((Number)o2).doubleValue();
+            o1 = ((Number) o1).doubleValue();
+            o2 = ((Number) o2).doubleValue();
         }
 
         if (!o1.getClass().equals(o2.getClass())) {
@@ -47,11 +47,11 @@ public class ComparisonExpression implements Expression {
         }
 
         if (!(o1 instanceof String && o2 instanceof String)) {
-            return compare((Comparable)o1, (Comparable)o2, 0);
+            return compare((Comparable) o1, (Comparable) o2, 0);
         }
 
-        String val = ((String)o1).toLowerCase(ctx.getLocale());
-        String str = ((String)o2).toLowerCase(ctx.getLocale());
+        String val = ((String) o1).toLowerCase(ctx.getLocale());
+        String str = ((String) o2).toLowerCase(ctx.getLocale());
 
         boolean sw = str.startsWith("*");
         boolean ew = str.endsWith("*");
@@ -59,12 +59,10 @@ public class ComparisonExpression implements Expression {
         if (sw && ew) {
             str = str.substring(1, str.length() - 1);
             return val.contains(str);
-        }
-        else if (sw) {
+        } else if (sw) {
             str = str.substring(1);
             return val.endsWith(str);
-        }
-        else if (ew) {
+        } else if (ew) {
             str = str.substring(0, str.length() - 1);
             return val.startsWith(str);
         }
@@ -73,11 +71,11 @@ public class ComparisonExpression implements Expression {
     }
 
     private static boolean lt(EvalContext ctx, Object o1, Object o2) {
-        return canCompare(o1, o2) && compare((Comparable)o1, (Comparable)o2, -1);
+        return canCompare(o1, o2) && compare((Comparable) o1, (Comparable) o2, -1);
     }
 
     private static boolean gt(EvalContext ctx, Object o1, Object o2) {
-        return canCompare(o1, o2) && compare((Comparable)o1, (Comparable)o2, 1);
+        return canCompare(o1, o2) && compare((Comparable) o1, (Comparable) o2, 1);
     }
 
     private static boolean lte(EvalContext ctx, Object o1, Object o2) {
@@ -102,11 +100,15 @@ public class ComparisonExpression implements Expression {
 
     private static boolean compare(Comparable c1, Comparable c2, int expected) {
         if (c1 instanceof Number && c2 instanceof Number) {
-            c1 = ((Number)c1).doubleValue();
-            c2 = ((Number)c2).doubleValue();
+            c1 = ((Number) c1).doubleValue();
+            c2 = ((Number) c2).doubleValue();
         }
 
-        return expected == c1.compareTo(c2);
+        int result = c1.compareTo(c2);
+
+        return result == expected ||
+                expected < 0 && result < 0 ||
+                expected > 0 && result > 0;
     }
 
     public static ComparisonExpression eq(Expression left, Expression right) {
